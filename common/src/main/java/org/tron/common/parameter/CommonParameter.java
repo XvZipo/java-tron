@@ -363,6 +363,14 @@ public class CommonParameter {
 
   @Getter
   @Setter
+  public long pbftMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long pbftMsgMaxSpeed;
+
+  @Getter
+  @Setter
   public long allowNewResourceModel;
 
   // @Getter

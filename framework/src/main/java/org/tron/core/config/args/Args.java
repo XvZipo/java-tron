@@ -204,6 +204,8 @@ public class Args extends CommonParameter {
     PARAMETER.allowMarketTransaction = 0;
     PARAMETER.allowTransactionFeePool = 0;
     PARAMETER.allowBlackHoleOptimization = 0;
+    PARAMETER.pbftMsgMaxQueueSize = 0;
+    PARAMETER.pbftMsgMaxSpeed = 0;
     PARAMETER.allowNewResourceModel = 0;
     PARAMETER.allowTvmIstanbul = 0;
     PARAMETER.allowTvmFreeze = 0;
@@ -894,6 +896,16 @@ public class Args extends CommonParameter {
     PARAMETER.allowBlackHoleOptimization =
         config.hasPath(Constant.COMMITTEE_ALLOW_BLACK_HOLE_OPTIMIZATION) ? config
             .getInt(Constant.COMMITTEE_ALLOW_BLACK_HOLE_OPTIMIZATION) : 0;
+
+
+    PARAMETER.pbftMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_PBFT_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_PBFT_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.pbftMsgMaxSpeed =
+        config.hasPath(Constant.NODE_PBFT_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_PBFT_MSG_MAX_SPEED) : 0;
+
 
     PARAMETER.allowNewResourceModel =
         config.hasPath(Constant.COMMITTEE_ALLOW_NEW_RESOURCE_MODEL) ? config
