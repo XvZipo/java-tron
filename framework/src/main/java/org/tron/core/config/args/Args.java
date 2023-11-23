@@ -914,9 +914,9 @@ public class Args extends CommonParameter {
         config.hasPath(Constant.NODE_TRX_MSG_MAX_SPEED) ? config
             .getInt(Constant.NODE_TRX_MSG_MAX_SPEED) : 0;
 
-    PARAMETER.trxMsgReplayDirectly =
-        config.hasPath(Constant.NODE_TRX_MSG_REPLAY_DIRECTLY) ? config
-            .getInt(Constant.NODE_TRX_MSG_REPLAY_DIRECTLY) : 0;
+    PARAMETER.msgReplayDirectly =
+        config.hasPath(Constant.NODE_MSG_REPLAY_DIRECTLY) ? config
+            .getInt(Constant.NODE_MSG_REPLAY_DIRECTLY) : 0;
 
 
 

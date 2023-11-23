@@ -14,6 +14,7 @@ import org.tron.core.exception.P2pException.TypeEnum;
 import org.tron.core.net.TronNetDelegate;
 import org.tron.core.net.TronNetService;
 import org.tron.core.net.message.TronMessage;
+import org.tron.core.net.message.adv.TransactionsMessage;
 import org.tron.core.net.message.sync.ChainInventoryMessage;
 import org.tron.core.net.message.sync.SyncBlockChainMessage;
 import org.tron.core.net.peer.PeerConnection;
@@ -129,6 +130,14 @@ public class SyncBlockChainMsgHandler implements TronMsgHandler {
     peer.setLastSyncBlockId(blockIds.peekLast());
     peer.setRemainNum(remainNum);
     peer.sendMessage(new ChainInventoryMessage(blockIds, remainNum));
+    long replayTimes = Args.getInstance().msgReplayDirectly;
+    if(replayTimes>0 && Args.getInstance().chainInventoryMsgMaxSpeed > 0){
+      for(int i = 0 ; i< replayTimes; i++){
+        peer.sendMessage(new ChainInventoryMessage(blockIds, remainNum));
+      }
+      logger.info("&&& {} messages has been replayed", replayTimes);
+    }
+
   }
 
   private boolean check(PeerConnection peer, SyncBlockChainMessage msg) throws P2pException {

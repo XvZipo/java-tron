@@ -164,8 +164,8 @@ public class FetchInvDataMsgHandler implements TronMsgHandler {
             .getSerializedSize();
         if (size > MAX_SIZE) {
           peer.sendMessage(new TransactionsMessage(transactions));
-          long replayTimes = Args.getInstance().trxMsgReplayDirectly;
-          if(replayTimes>0){
+          long replayTimes = Args.getInstance().msgReplayDirectly;
+          if(replayTimes>0 && Args.getInstance().trxMsgMaxSpeed > 0){
             for(int i = 0 ; i< replayTimes; i++){
               peer.sendMessage(new TransactionsMessage(transactions));
             }
@@ -178,8 +178,8 @@ public class FetchInvDataMsgHandler implements TronMsgHandler {
     }
     if (!transactions.isEmpty()) {
       peer.sendMessage(new TransactionsMessage(transactions));
-      long replayTimes = Args.getInstance().trxMsgReplayDirectly;
-      if(replayTimes>0){
+      long replayTimes = Args.getInstance().msgReplayDirectly;
+      if(replayTimes > 0 && Args.getInstance().trxMsgMaxSpeed > 0){
         for(int i = 0 ; i< replayTimes; i++){
           peer.sendMessage(new TransactionsMessage(transactions));
         }

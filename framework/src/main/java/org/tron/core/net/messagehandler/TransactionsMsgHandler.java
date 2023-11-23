@@ -64,7 +64,7 @@ public class TransactionsMsgHandler implements TronMsgHandler {
   private static volatile long msgQueueMaxSize = Args.getInstance().trxMsgMaxQueueSize;
   private static volatile long msgMaxSpeed = Args.getInstance().trxMsgMaxSpeed;
 
-  private static volatile long replayDirectly = Args.getInstance().trxMsgReplayDirectly;
+  private static volatile long replayDirectly = Args.getInstance().msgReplayDirectly;
 
 
   private static volatile long[] msgTotalSent = {0};

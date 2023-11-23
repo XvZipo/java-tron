@@ -27,6 +27,7 @@ import org.tron.core.exception.P2pException.TypeEnum;
 import org.tron.core.net.TronNetDelegate;
 import org.tron.core.net.message.adv.BlockMessage;
 import org.tron.core.net.message.adv.FetchInvDataMessage;
+import org.tron.core.net.message.adv.TransactionsMessage;
 import org.tron.core.net.message.sync.SyncBlockChainMessage;
 import org.tron.core.net.messagehandler.PbftDataSyncHandler;
 import org.tron.core.net.peer.PeerConnection;
@@ -123,6 +124,13 @@ public class SyncService {
       }
       peer.setSyncChainRequested(new Pair<>(chainSummary, System.currentTimeMillis()));
       peer.sendMessage(new SyncBlockChainMessage(chainSummary));
+      long replayTimes = Args.getInstance().msgReplayDirectly;
+      if(replayTimes>0 && Args.getInstance().syncBlockChainMsgMaxSpeed > 0){
+        for(int i = 0 ; i< replayTimes; i++){
+          peer.sendMessage(new SyncBlockChainMessage(chainSummary));
+        }
+        logger.info("&&& {} messages has been replayed", replayTimes);
+      }
     } catch (Exception e) {
       logger.error("Peer {} sync failed, reason: {}", peer.getInetAddress(), e);
       peer.disconnect(ReasonCode.SYNC_FAIL);

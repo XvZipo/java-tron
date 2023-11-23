@@ -312,7 +312,7 @@ public class Constant {
   public static final String NODE_PBFT_MSG_MAX_SPEED = "node.pbftMsgMaxSpeed";
   public static final String NODE_TRX_MSG_MAX_QUEUE_SIZE = "node.trxMsgMaxQueueSize";
   public static final String NODE_TRX_MSG_MAX_SPEED = "node.trxMsgMaxSpeed";
-  public static final String NODE_TRX_MSG_REPLAY_DIRECTLY = "node.trxMsgReplayDirectly";
+  public static final String NODE_MSG_REPLAY_DIRECTLY = "node.msgReplayDirectly";
   public static final String NODE_SYNC_BLOCK_CHAIN_MSG_MAX_QUEUE_SIZE = "node.syncBlockChainMsgMaxQueueSize";
   public static final String NODE_SYNC_BLOCK_CHAIN_MSG_MAX_SPEED = "node.syncBlockChainMsgMaxSpeed";
 

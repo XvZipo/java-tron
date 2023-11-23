@@ -380,7 +380,7 @@ public class CommonParameter {
 
   @Getter
   @Setter
-  public long trxMsgReplayDirectly;
+  public long msgReplayDirectly;
 
 
   @Getter
