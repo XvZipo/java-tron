@@ -111,6 +111,7 @@ public class InventoryMsgHandler implements TronMsgHandler {
     InventoryType type = inventoryMessage.getInventoryType();
 
     if (!check(peer, inventoryMessage)) {
+      logger.info("inventoryMessage check fail!");
       return;
     }
 
