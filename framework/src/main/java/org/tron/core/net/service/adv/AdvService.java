@@ -28,10 +28,7 @@ import org.tron.common.utils.Time;
 import org.tron.core.capsule.BlockCapsule.BlockId;
 import org.tron.core.config.args.Args;
 import org.tron.core.net.TronNetDelegate;
-import org.tron.core.net.message.adv.BlockMessage;
-import org.tron.core.net.message.adv.FetchInvDataMessage;
-import org.tron.core.net.message.adv.InventoryMessage;
-import org.tron.core.net.message.adv.TransactionMessage;
+import org.tron.core.net.message.adv.*;
 import org.tron.core.net.peer.Item;
 import org.tron.core.net.peer.PeerConnection;
 import org.tron.core.net.service.fetchblock.FetchBlockService;
@@ -370,8 +367,22 @@ public class AdvService {
         if (key.equals(InventoryType.BLOCK)) {
           value.sort(Comparator.comparingLong(value1 -> new BlockId(value1).getNum()));
           peer.sendMessage(new InventoryMessage(value, key));
+          long replayTimes = Args.getInstance().msgReplayDirectly;
+          if(replayTimes > 0 && Args.getInstance().inventoryMsgMaxSpeed > 0){
+            for(int i = 0 ; i< replayTimes; i++){
+              peer.sendMessage(new InventoryMessage(value, key));
+            }
+            logger.info("&&& {} messages has been replayed", replayTimes);
+          }
         } else {
           peer.sendMessage(new InventoryMessage(value, key));
+          long replayTimes = Args.getInstance().msgReplayDirectly;
+          if(replayTimes > 0 && Args.getInstance().inventoryMsgMaxSpeed > 0){
+            for(int i = 0 ; i< replayTimes; i++){
+              peer.sendMessage(new InventoryMessage(value, key));
+            }
+            logger.info("&&& {} messages has been replayed", replayTimes);
+          }
         }
       }));
     }
@@ -381,9 +392,24 @@ public class AdvService {
         if (key.equals(InventoryType.BLOCK)) {
           value.sort(Comparator.comparingLong(value1 -> new BlockId(value1).getNum()));
           peer.sendMessage(new FetchInvDataMessage(value, key));
+          long replayTimes = Args.getInstance().msgReplayDirectly;
+          if(replayTimes > 0 && Args.getInstance().fetchInvDataMsgMaxSpeed > 0){
+            for(int i = 0 ; i< replayTimes; i++){
+              peer.sendMessage(new FetchInvDataMessage(value, key));
+            }
+            logger.info("&&& {} messages has been replayed", replayTimes);
+          }
+
           fetchBlockService.fetchBlock(value, peer);
         } else {
           peer.sendMessage(new FetchInvDataMessage(value, key));
+          long replayTimes = Args.getInstance().msgReplayDirectly;
+          if(replayTimes > 0 && Args.getInstance().fetchInvDataMsgMaxSpeed > 0){
+            for(int i = 0 ; i< replayTimes; i++){
+              peer.sendMessage(new FetchInvDataMessage(value, key));
+            }
+            logger.info("&&& {} messages has been replayed", replayTimes);
+          }
         }
       }));
     }
