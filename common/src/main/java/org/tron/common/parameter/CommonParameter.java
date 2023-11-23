@@ -369,6 +369,72 @@ public class CommonParameter {
   @Setter
   public long pbftMsgMaxSpeed;
 
+
+  @Getter
+  @Setter
+  public long trxMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long trxMsgMaxSpeed;
+
+  @Getter
+  @Setter
+  public long trxMsgReplayDirectly;
+
+
+  @Getter
+  @Setter
+  public long syncBlockChainMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long syncBlockChainMsgMaxSpeed;
+
+  @Getter
+  @Setter
+  public long pbftCommitMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long pbftCommitMsgMaxSpeed;
+
+  @Getter
+  @Setter
+  public long inventoryMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long inventoryMsgMaxSpeed;
+
+  @Getter
+  @Setter
+  public long fetchInvDataMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long fetchInvDataMsgMaxSpeed;
+
+
+  @Getter
+  @Setter
+  public long chainInventoryMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long chainInventoryMsgMaxSpeed;
+
+  @Getter
+  @Setter
+  public long blockMsgMaxQueueSize;
+
+  @Getter
+  @Setter
+  public long blockMsgMaxSpeed;
+
+
+
+
   @Getter
   @Setter
   public long allowNewResourceModel;

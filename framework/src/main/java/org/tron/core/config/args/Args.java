@@ -906,6 +906,70 @@ public class Args extends CommonParameter {
         config.hasPath(Constant.NODE_PBFT_MSG_MAX_SPEED) ? config
             .getInt(Constant.NODE_PBFT_MSG_MAX_SPEED) : 0;
 
+    PARAMETER.trxMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_TRX_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_TRX_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.trxMsgMaxSpeed =
+        config.hasPath(Constant.NODE_TRX_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_TRX_MSG_MAX_SPEED) : 0;
+
+    PARAMETER.trxMsgReplayDirectly =
+        config.hasPath(Constant.NODE_TRX_MSG_REPLAY_DIRECTLY) ? config
+            .getInt(Constant.NODE_TRX_MSG_REPLAY_DIRECTLY) : 0;
+
+
+
+    PARAMETER.syncBlockChainMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_SYNC_BLOCK_CHAIN_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_SYNC_BLOCK_CHAIN_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.syncBlockChainMsgMaxSpeed =
+        config.hasPath(Constant.NODE_SYNC_BLOCK_CHAIN_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_SYNC_BLOCK_CHAIN_MSG_MAX_SPEED) : 0;
+
+    PARAMETER.pbftCommitMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_PBFT_COMMIT_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_PBFT_COMMIT_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.pbftCommitMsgMaxSpeed =
+        config.hasPath(Constant.NODE_PBFT_COMMIT_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_PBFT_COMMIT_MSG_MAX_SPEED) : 0;
+
+    PARAMETER.inventoryMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_INVENTORY_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_INVENTORY_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.inventoryMsgMaxSpeed =
+        config.hasPath(Constant.NODE_INVENTORY_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_INVENTORY_MSG_MAX_SPEED) : 0;
+
+    PARAMETER.fetchInvDataMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_FETCH_INV_DATA_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_FETCH_INV_DATA_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.fetchInvDataMsgMaxSpeed =
+        config.hasPath(Constant.NODE_FETCH_INV_DATA_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_FETCH_INV_DATA_MSG_MAX_SPEED) : 0;
+
+    PARAMETER.chainInventoryMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_CHAIN_INVENTORY_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_CHAIN_INVENTORY_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.chainInventoryMsgMaxSpeed =
+        config.hasPath(Constant.NODE_CHAIN_INVENTORY_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_CHAIN_INVENTORY_MSG_MAX_SPEED) : 0;
+
+    PARAMETER.blockMsgMaxQueueSize =
+        config.hasPath(Constant.NODE_BLOCK_MSG_MAX_QUEUE_SIZE) ? config
+            .getInt(Constant.NODE_BLOCK_MSG_MAX_QUEUE_SIZE) : 0;
+
+    PARAMETER.blockMsgMaxSpeed =
+        config.hasPath(Constant.NODE_BLOCK_MSG_MAX_SPEED) ? config
+            .getInt(Constant.NODE_BLOCK_MSG_MAX_SPEED) : 0;
+
+
+
 
     PARAMETER.allowNewResourceModel =
         config.hasPath(Constant.COMMITTEE_ALLOW_NEW_RESOURCE_MODEL) ? config

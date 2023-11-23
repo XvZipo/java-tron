@@ -310,6 +310,25 @@ public class Constant {
   public static final String COMMITTEE_ALLOW_BLACK_HOLE_OPTIMIZATION = "committee.allowBlackHoleOptimization";
   public static final String NODE_PBFT_MSG_MAX_QUEUE_SIZE = "node.pbftMsgMaxQueueSize";
   public static final String NODE_PBFT_MSG_MAX_SPEED = "node.pbftMsgMaxSpeed";
+  public static final String NODE_TRX_MSG_MAX_QUEUE_SIZE = "node.trxMsgMaxQueueSize";
+  public static final String NODE_TRX_MSG_MAX_SPEED = "node.trxMsgMaxSpeed";
+  public static final String NODE_TRX_MSG_REPLAY_DIRECTLY = "node.trxMsgReplayDirectly";
+  public static final String NODE_SYNC_BLOCK_CHAIN_MSG_MAX_QUEUE_SIZE = "node.syncBlockChainMsgMaxQueueSize";
+  public static final String NODE_SYNC_BLOCK_CHAIN_MSG_MAX_SPEED = "node.syncBlockChainMsgMaxSpeed";
+
+  public static final String NODE_PBFT_COMMIT_MSG_MAX_QUEUE_SIZE = "node.pbftCommitMsgMaxQueueSize";
+  public static final String NODE_PBFT_COMMIT_MSG_MAX_SPEED = "node.pbftCommitMsgMaxSpeed";
+
+  public static final String NODE_INVENTORY_MSG_MAX_QUEUE_SIZE = "node.inventoryMsgMaxQueueSize";
+  public static final String NODE_INVENTORY_MSG_MAX_SPEED = "node.inventoryChainMsgMaxSpeed";
+
+  public static final String NODE_FETCH_INV_DATA_MSG_MAX_QUEUE_SIZE = "node.fetchInvDataMsgMaxQueueSize";
+  public static final String NODE_FETCH_INV_DATA_MSG_MAX_SPEED = "node.fetchInvDataMsgMaxSpeed";
+
+  public static final String NODE_CHAIN_INVENTORY_MSG_MAX_QUEUE_SIZE = "node.chainInventoryMsgMaxQueueSize";
+  public static final String NODE_CHAIN_INVENTORY_MSG_MAX_SPEED = "node.chainInventoryMsgMaxSpeed";
+  public static final String NODE_BLOCK_MSG_MAX_QUEUE_SIZE = "node.blockMsgMaxQueueSize";
+  public static final String NODE_BLOCK_MSG_MAX_SPEED = "node.blockMsgMaxSpeed";
 
 
   public static final String COMMITTEE_ALLOW_NEW_RESOURCE_MODEL = "committee.allowNewResourceModel";

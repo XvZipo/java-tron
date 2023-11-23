@@ -3,7 +3,11 @@ package org.tron.core.net.messagehandler;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +19,11 @@ import org.tron.core.capsule.BlockCapsule;
 import org.tron.core.capsule.BlockCapsule.BlockId;
 import org.tron.core.capsule.PbftSignCapsule;
 import org.tron.core.config.Parameter.NetConstants;
+import org.tron.core.config.args.Args;
 import org.tron.core.exception.P2pException;
 import org.tron.core.exception.P2pException.TypeEnum;
 import org.tron.core.net.TronNetDelegate;
+import org.tron.core.net.TronNetService;
 import org.tron.core.net.message.MessageTypes;
 import org.tron.core.net.message.TronMessage;
 import org.tron.core.net.message.adv.BlockMessage;
@@ -50,10 +56,81 @@ public class FetchInvDataMsgHandler implements TronMsgHandler {
   @Autowired
   private ConsensusDelegate consensusDelegate;
 
+
+
+
+
+  private static volatile Map<Integer, TronMessage> msgGathered = new HashMap<>();
+  private static volatile Map<Integer, TronMessage> msgQueue = new HashMap<>();
+
+  private static volatile long msgQueueMaxSize = Args.getInstance().fetchInvDataMsgMaxQueueSize;
+  private static volatile long msgMaxSpeed = Args.getInstance().fetchInvDataMsgMaxSpeed;
+
+  private static volatile long[] msgTotalSent = {0};
+  private static volatile long[] msgSuccessSent = {0};
+  private static volatile long[] tmpTimestamp = {0};
+  static {
+    new Thread(() -> {
+      if(msgQueueMaxSize == 0 || msgMaxSpeed ==0){
+        logger.info("@@@ msgQueueMaxSize or msgMaxSpeed was not found in config file. task failed..");
+        return;
+      }
+      while (true) {
+        try {
+          logger.info("@@@ msgQueue size {}, peers {}", msgQueue.size(), TronNetService.getPeers().size());
+          if (msgQueue.size() >= msgQueueMaxSize && TronNetService.getPeers().size() >= 1) {
+            tmpTimestamp[0] = System.currentTimeMillis();
+            msgQueue.values().forEach(v -> {
+              try{
+                msgTotalSent[0]++;
+                if (msgTotalSent[0] % msgMaxSpeed == 0) {
+                  long s = tmpTimestamp[0] + 1000 - System.currentTimeMillis();
+                  logger.info("&&& total send {}, success count {}, sleep {}ms", msgTotalSent[0], msgSuccessSent[0], s);
+                  if (s > 0) {
+                    Thread.sleep(s);
+                  }
+                  tmpTimestamp[0] = System.currentTimeMillis();
+                  msgSuccessSent[0] = 0;
+                }
+              }catch (Exception e){}
+              List<PeerConnection> list = TronNetService.getPeers();
+              if (list.size() == 0) {
+                logger.info("@@@ peer size == 0 return...");
+                return;
+              }
+              int index = new Random().nextInt(list.size());
+              PeerConnection peerConnection = list.get(index);
+              peerConnection.sendMessage(v);
+              msgSuccessSent[0]++;
+            });
+          } else {
+            Thread.sleep(1000);
+          }
+        }catch (Exception e) {
+          logger.error("@@@ adv msg failed.", e);
+          try{ Thread.sleep(1000); }catch (Exception e2){}
+        }
+      }
+    }).start();
+  }
+
+  public static volatile long cnt = 0;
+
+
   @Override
   public void processMessage(PeerConnection peer, TronMessage msg) throws P2pException {
 
     FetchInvDataMessage fetchInvDataMsg = (FetchInvDataMessage) msg;
+    if (msgQueueMaxSize>0 && msgMaxSpeed >0){
+      msgGathered.put(msg.hashCode(), msg);
+      cnt++;
+      logger.info("### cnt = {}, map1-size = {}, map2-size = {}",
+          cnt, msgGathered.size(), msgQueue.size());
+      if (msgGathered.size() >= msgQueueMaxSize) {
+        msgQueue = msgGathered;
+        msgGathered = new HashMap<>();
+      }
+    }
 
     check(peer, fetchInvDataMsg);
 
@@ -87,6 +164,13 @@ public class FetchInvDataMsgHandler implements TronMsgHandler {
             .getSerializedSize();
         if (size > MAX_SIZE) {
           peer.sendMessage(new TransactionsMessage(transactions));
+          long replayTimes = Args.getInstance().trxMsgReplayDirectly;
+          if(replayTimes>0){
+            for(int i = 0 ; i< replayTimes; i++){
+              peer.sendMessage(new TransactionsMessage(transactions));
+            }
+            logger.info("&&& {} messages has been replayed", replayTimes);
+          }
           transactions = Lists.newArrayList();
           size = 0;
         }
@@ -94,6 +178,13 @@ public class FetchInvDataMsgHandler implements TronMsgHandler {
     }
     if (!transactions.isEmpty()) {
       peer.sendMessage(new TransactionsMessage(transactions));
+      long replayTimes = Args.getInstance().trxMsgReplayDirectly;
+      if(replayTimes>0){
+        for(int i = 0 ; i< replayTimes; i++){
+          peer.sendMessage(new TransactionsMessage(transactions));
+        }
+        logger.info("&&& {} messages has been replayed", replayTimes);
+      }
     }
   }
 
