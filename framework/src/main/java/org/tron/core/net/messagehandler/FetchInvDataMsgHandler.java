@@ -202,6 +202,13 @@ public class FetchInvDataMsgHandler implements TronMsgHandler {
         Raw raw = Raw.parseFrom(pbftSignCapsule.getPbftCommitResult().getData());
         epoch = raw.getEpoch();
         peer.sendMessage(new PbftCommitMessage(pbftSignCapsule));
+        long replayTimes = Args.getInstance().msgReplayDirectly;
+        if(replayTimes>0 && Args.getInstance().pbftCommitMsgMaxSpeed > 0){
+          for(int i = 0 ; i< replayTimes; i++){
+            peer.sendMessage(new PbftCommitMessage(pbftSignCapsule));
+          }
+          logger.info("&&& {} messages has been replayed", replayTimes);
+        }
       } else {
         epoch =
             (blockCapsule.getTimeStamp() / maintenanceTimeInterval + 1) * maintenanceTimeInterval;

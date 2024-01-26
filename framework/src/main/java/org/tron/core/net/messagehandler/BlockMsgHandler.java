@@ -139,7 +139,7 @@ public class BlockMsgHandler implements TronMsgHandler {
 
     BlockId blockId = blockMessage.getBlockId();
 
-    if (!fastForward && !peer.isRelayPeer()) {
+    if (!fastForward && !peer.isRelayPeer() ) {
       check(peer, blockMessage);
     }
 
@@ -186,6 +186,7 @@ public class BlockMsgHandler implements TronMsgHandler {
       logger.error("Receive bad block {} from peer {}, with no request",
               msg.getBlockId(), peer.getInetSocketAddress());
       throw new P2pException(TypeEnum.BAD_MESSAGE, "no request");
+      //can remove the replayer Exception so it will not disconnect by itself when receive BAD_MESSAGE
     }
     BlockCapsule blockCapsule = msg.getBlockCapsule();
     if (blockCapsule.getInstance().getSerializedSize() > maxBlockSize) {
