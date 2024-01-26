@@ -498,6 +498,14 @@ public class Wallet {
     Sha256Hash txID = trx.getTransactionId();
     try {
       TransactionMessage message = new TransactionMessage(signedTransaction.toByteArray());
+
+      if (tronNetDelegate.isBlockUnsolidified()) {
+        logger.warn("Broadcast transaction {} has failed, block unsolidified.", txID);
+        return builder.setResult(false).setCode(response_code.BLOCK_UNSOLIDIFIED)
+          .setMessage(ByteString.copyFromUtf8("Block unsolidified."))
+          .build();
+      }
+
       if (minEffectiveConnection != 0) {
         if (tronNetDelegate.getActivePeer().isEmpty()) {
           logger.warn("Broadcast transaction {} has failed, no connection.", txID);
@@ -1320,6 +1328,10 @@ public class Wallet {
     builder.addChainParameter(Protocol.ChainParameters.ChainParameter.newBuilder()
         .setKey("getMaxDelegateLockPeriod")
         .setValue(dbManager.getDynamicPropertiesStore().getMaxDelegateLockPeriod())
+        .build());
+    builder.addChainParameter(Protocol.ChainParameters.ChainParameter.newBuilder()
+        .setKey("getAllowOldRewardOpt")
+        .setValue(dbManager.getDynamicPropertiesStore().getAllowOldRewardOpt())
         .build());
 
     return builder.build();
@@ -3850,11 +3862,12 @@ public class Wallet {
     TransactionExtention.Builder trxExtBuilder = TransactionExtention.newBuilder();
     Return.Builder retBuilder = Return.newBuilder();
     TransactionExtention trxExt;
+    Transaction trx;
 
     try {
       TransactionCapsule trxCap = createTransactionCapsule(trigger,
           ContractType.TriggerSmartContract);
-      Transaction trx = triggerConstantContract(trigger, trxCap, trxExtBuilder, retBuilder);
+      trx = triggerConstantContract(trigger, trxCap, trxExtBuilder, retBuilder);
 
       retBuilder.setResult(true).setCode(response_code.SUCCESS);
       trxExtBuilder.setTransaction(trx);
@@ -3877,10 +3890,10 @@ public class Wallet {
       logger.warn("unknown exception caught: " + e.getMessage(), e);
     } finally {
       trxExt = trxExtBuilder.build();
+      trx = trxExt.getTransaction();
     }
 
-    String code = trxExt.getResult().getCode().toString();
-    if ("SUCCESS".equals(code)) {
+    if (code.SUCESS == trx.getRet(0).getRet()) {
       List<ByteString> list = trxExt.getConstantResultList();
       byte[] listBytes = new byte[0];
       for (ByteString bs : list) {
@@ -4114,11 +4127,12 @@ public class Wallet {
     TransactionExtention.Builder trxExtBuilder = TransactionExtention.newBuilder();
     Return.Builder retBuilder = Return.newBuilder();
     TransactionExtention trxExt;
+    Transaction trx;
 
     try {
       TransactionCapsule trxCap = createTransactionCapsule(trigger,
           ContractType.TriggerSmartContract);
-      Transaction trx = triggerConstantContract(trigger, trxCap, trxExtBuilder, retBuilder);
+      trx = triggerConstantContract(trigger, trxCap, trxExtBuilder, retBuilder);
 
       retBuilder.setResult(true).setCode(response_code.SUCCESS);
       trxExtBuilder.setTransaction(trx);
@@ -4141,10 +4155,10 @@ public class Wallet {
       logger.warn("Unknown exception caught: " + e.getMessage(), e);
     } finally {
       trxExt = trxExtBuilder.build();
+      trx = trxExt.getTransaction();
     }
 
-    String code = trxExt.getResult().getCode().toString();
-    if ("SUCCESS".equals(code)) {
+    if (code.SUCESS == trx.getRet(0).getRet()) {
       List<ByteString> list = trxExt.getConstantResultList();
       byte[] listBytes = new byte[0];
       for (ByteString bs : list) {
