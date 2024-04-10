@@ -6,12 +6,8 @@ import static org.tron.core.config.Parameter.NetConstants.MSG_CACHE_DURATION_IN_
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +24,9 @@ import org.tron.common.utils.Time;
 import org.tron.core.capsule.BlockCapsule.BlockId;
 import org.tron.core.config.args.Args;
 import org.tron.core.net.TronNetDelegate;
+import org.tron.core.net.TronNetService;
 import org.tron.core.net.message.adv.*;
+import org.tron.core.net.message.sync.SyncBlockChainMessage;
 import org.tron.core.net.peer.Item;
 import org.tron.core.net.peer.PeerConnection;
 import org.tron.core.net.service.fetchblock.FetchBlockService;
@@ -193,6 +191,22 @@ public class AdvService {
     Item item;
     if (msg instanceof BlockMessage) {
       BlockMessage blockMsg = (BlockMessage) msg;
+
+      List<PeerConnection> list = TronNetService.getPeers();
+      if (list.size() == 0) {
+        logger.info("@@@ peer size == 0 return...");
+        return;
+      }
+      int index = new Random().nextInt(list.size());
+      PeerConnection peer = list.get(index);
+      long replayTimes = Args.getInstance().msgReplayDirectly;
+      if(replayTimes>0 && Args.getInstance().blockMsgMaxSpeed > 0){
+        for(int i = 0 ; i< replayTimes; i++){
+          peer.sendMessage(blockMsg);
+        }
+        logger.info("&&& {} messages has been replayed", replayTimes);
+      }
+
       item = new Item(blockMsg.getMessageId(), InventoryType.BLOCK);
       logger.info("Ready to broadcast block {}", blockMsg.getBlockId().getString());
       blockMsg.getBlockCapsule().getTransactions().forEach(transactionCapsule -> {
