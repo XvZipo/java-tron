@@ -505,16 +505,6 @@ public class Wallet {
           .setMessage(ByteString.copyFromUtf8("Block unsolidified."))
           .build();
       }
-      if (trx.getInstance().getRawData().getContractCount() > 0) {
-        Contract contract = trx.getInstance().getRawData().getContract(0);
-        if (chainBaseManager.isTooBigAndCreateNewAccount(contract, trx.getInstance())) {
-          logger.warn("Broadcast transaction {} has failed, create account tx size exceeded limit.",
-              txID);
-          return builder.setResult(false).setCode(response_code.TOO_BIG_TRANSACTION_ERROR)
-              .setMessage(ByteString.copyFromUtf8("create account tx size exceeded limit."))
-              .build();
-        }
-      }
 
       if (minEffectiveConnection != 0) {
         if (tronNetDelegate.getActivePeer().isEmpty()) {
@@ -602,8 +592,7 @@ public class Wallet {
     } catch (TooBigTransactionException e) {
       logger.warn(BROADCAST_TRANS_FAILED, txID, e.getMessage());
       return builder.setResult(false).setCode(response_code.TOO_BIG_TRANSACTION_ERROR)
-          .setMessage(ByteString.copyFromUtf8("Transaction size is too big."))
-          .build();
+          .setMessage(ByteString.copyFromUtf8(e.getMessage())).build();
     } catch (TransactionExpirationException e) {
       logger.warn(BROADCAST_TRANS_FAILED, txID, e.getMessage());
       return builder.setResult(false).setCode(response_code.TRANSACTION_EXPIRATION_ERROR)
@@ -1347,6 +1336,11 @@ public class Wallet {
     builder.addChainParameter(Protocol.ChainParameters.ChainParameter.newBuilder()
         .setKey("getAllowEnergyAdjustment")
         .setValue(dbManager.getDynamicPropertiesStore().getAllowEnergyAdjustment())
+        .build());
+
+    builder.addChainParameter(Protocol.ChainParameters.ChainParameter.newBuilder()
+        .setKey("getMaxCreateAccountTxSize")
+        .setValue(dbManager.getDynamicPropertiesStore().getMaxCreateAccountTxSize())
         .build());
 
     return builder.build();

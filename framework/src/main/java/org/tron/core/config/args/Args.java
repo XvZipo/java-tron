@@ -5,7 +5,6 @@ import static java.lang.System.exit;
 import static org.tron.core.Constant.ADD_PRE_FIX_BYTE_MAINNET;
 import static org.tron.core.Constant.DYNAMIC_ENERGY_INCREASE_FACTOR_RANGE;
 import static org.tron.core.Constant.DYNAMIC_ENERGY_MAX_FACTOR_RANGE;
-import static org.tron.core.Constant.TRANSACTION_MAX_BYTE_SIZE;
 import static org.tron.core.config.Parameter.ChainConstant.BLOCK_PRODUCE_TIMEOUT_PERCENT;
 import static org.tron.core.config.Parameter.ChainConstant.MAX_ACTIVE_WITNESS_NUM;
 
@@ -233,7 +232,6 @@ public class Args extends CommonParameter {
     PARAMETER.unsolidifiedBlockCheck = false;
     PARAMETER.maxUnsolidifiedBlocks = 54;
     PARAMETER.allowOldRewardOpt = 0;
-    PARAMETER.maxCreateAccountTxSize = (int) TRANSACTION_MAX_BYTE_SIZE;
     PARAMETER.allowEnergyAdjustment = 0;
   }
 
@@ -1195,10 +1193,6 @@ public class Args extends CommonParameter {
     PARAMETER.maxUnsolidifiedBlocks =
       config.hasPath(Constant.MAX_UNSOLIDIFIED_BLOCKS) ? config
         .getInt(Constant.MAX_UNSOLIDIFIED_BLOCKS) : 54;
-
-    PARAMETER.maxCreateAccountTxSize =
-        config.hasPath(Constant.MAX_CREATE_ACCOUNT_TX_SIZE) ? config
-            .getInt(Constant.MAX_CREATE_ACCOUNT_TX_SIZE) : (int) TRANSACTION_MAX_BYTE_SIZE;
 
     long allowOldRewardOpt = config.hasPath(Constant.COMMITTEE_ALLOW_OLD_REWARD_OPT) ? config
         .getInt(Constant.COMMITTEE_ALLOW_OLD_REWARD_OPT) : 0;

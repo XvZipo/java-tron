@@ -1,5 +1,6 @@
 package org.tron.core.db;
 
+import static org.tron.core.Constant.PER_SIGN_LENGTH;
 import static org.tron.core.config.Parameter.ChainConstant.TRX_PRECISION;
 import static org.tron.protos.Protocol.Transaction.Contract.ContractType.ShieldedTransferContract;
 import static org.tron.protos.Protocol.Transaction.Contract.ContractType.TransferAssetContract;
@@ -20,9 +21,11 @@ import org.tron.core.capsule.AssetIssueCapsule;
 import org.tron.core.capsule.TransactionCapsule;
 import org.tron.core.exception.AccountResourceInsufficientException;
 import org.tron.core.exception.ContractValidateException;
+import org.tron.core.exception.TooBigTransactionException;
 import org.tron.core.exception.TooBigTransactionResultException;
 import org.tron.protos.Protocol.Transaction.Contract;
 import org.tron.protos.contract.AssetIssueContractOuterClass.TransferAssetContract;
+import org.tron.protos.contract.BalanceContract.TransferContract;
 
 @Slf4j(topic = "DB")
 public class BandwidthProcessor extends ResourceProcessor {
@@ -93,7 +96,7 @@ public class BandwidthProcessor extends ResourceProcessor {
   @Override
   public void consume(TransactionCapsule trx, TransactionTrace trace)
       throws ContractValidateException, AccountResourceInsufficientException,
-      TooBigTransactionResultException {
+      TooBigTransactionResultException, TooBigTransactionException {
     List<Contract> contracts = trx.getInstance().getRawData().getContractList();
     if (trx.getResultSerializedSize() > Constant.MAX_RESULT_SIZE_IN_TX * contracts.size()) {
       throw new TooBigTransactionResultException();
@@ -124,7 +127,18 @@ public class BandwidthProcessor extends ResourceProcessor {
             StringUtil.encode58Check(address)));
       }
       long now = chainBaseManager.getHeadSlot();
-      if (chainBaseManager.contractCreateNewAccount(contract)) {
+      if (contractCreateNewAccount(contract)) {
+        if (!trx.isInBlock()) {
+          long maxCreateAccountTxSize = dynamicPropertiesStore.getMaxCreateAccountTxSize();
+          int signatureCount = trx.getInstance().getSignatureCount();
+          long createAccountBytesSize = trx.getInstance().toBuilder().clearRet()
+              .build().getSerializedSize() - (signatureCount * PER_SIGN_LENGTH);
+          if (createAccountBytesSize > maxCreateAccountTxSize) {
+            throw new TooBigTransactionException(String.format(
+                "Too big new account transaction, TxId %s, the size is %d bytes, maxTxSize %d",
+                trx.getTransactionId(), createAccountBytesSize, maxCreateAccountTxSize));
+          }
+        }
         consumeForCreateNewAccount(accountCapsule, bytesSize, now, trace);
         continue;
       }
@@ -232,6 +246,37 @@ public class BandwidthProcessor extends ResourceProcessor {
       return false;
     }
   }
+
+  public boolean contractCreateNewAccount(Contract contract) {
+    AccountCapsule toAccount;
+    switch (contract.getType()) {
+      case AccountCreateContract:
+        return true;
+      case TransferContract:
+        TransferContract transferContract;
+        try {
+          transferContract = contract.getParameter().unpack(TransferContract.class);
+        } catch (Exception ex) {
+          throw new RuntimeException(ex.getMessage());
+        }
+        toAccount =
+            chainBaseManager.getAccountStore().get(transferContract.getToAddress().toByteArray());
+        return toAccount == null;
+      case TransferAssetContract:
+        TransferAssetContract transferAssetContract;
+        try {
+          transferAssetContract = contract.getParameter().unpack(TransferAssetContract.class);
+        } catch (Exception ex) {
+          throw new RuntimeException(ex.getMessage());
+        }
+        toAccount = chainBaseManager.getAccountStore()
+            .get(transferAssetContract.getToAddress().toByteArray());
+        return toAccount == null;
+      default:
+        return false;
+    }
+  }
+
 
   private boolean useAssetAccountNet(Contract contract, AccountCapsule accountCapsule, long now,
       long bytes)
