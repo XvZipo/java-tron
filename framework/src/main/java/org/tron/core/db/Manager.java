@@ -795,6 +795,7 @@ public class Manager {
   void validateCommon(TransactionCapsule transactionCapsule)
       throws TransactionExpirationException, TooBigTransactionException {
     if (!transactionCapsule.isInBlock()) {
+      transactionCapsule.removeRedundantRet();
       long generalBytesSize =
           transactionCapsule.getInstance().toBuilder().clearRet().build().getSerializedSize()
               + Constant.MAX_RESULT_SIZE_IN_TX + Constant.MAX_RESULT_SIZE_IN_TX;
@@ -1425,8 +1426,14 @@ public class Manager {
     if (trxCap == null) {
       return null;
     }
-    Contract contract = trxCap.getInstance().getRawData().getContract(0);
     Sha256Hash txId = trxCap.getTransactionId();
+    if (trxCap.getInstance().getRawData().getContractList().size() != 1) {
+      throw new ContractSizeNotEqualToOneException(
+          String.format(
+              "tx %s contract size should be exactly 1, this is extend feature ,actual :%d",
+              txId, trxCap.getInstance().getRawData().getContractList().size()));
+    }
+    Contract contract = trxCap.getInstance().getRawData().getContract(0);
     final Histogram.Timer requestTimer = Metrics.histogramStartTimer(
         MetricKeys.Histogram.PROCESS_TRANSACTION_LATENCY,
         Objects.nonNull(blockCap) ? MetricLabels.BLOCK : MetricLabels.TRX,
@@ -1441,13 +1448,6 @@ public class Manager {
 
     validateTapos(trxCap);
     validateCommon(trxCap);
-
-    if (trxCap.getInstance().getRawData().getContractList().size() != 1) {
-      throw new ContractSizeNotEqualToOneException(
-          String.format(
-              "tx %s contract size should be exactly 1, this is extend feature ,actual :%d",
-          txId, trxCap.getInstance().getRawData().getContractList().size()));
-    }
 
     validateDup(trxCap);
 
