@@ -407,6 +407,7 @@ message Transaction {
       UNKNOWN = 13;
       TRANSFER_FAILED = 14;
       INVALID_CODE = 15;
+      // please fill in the order according to the serial number
     }
     int64 fee = 1;
     code ret = 2;
@@ -426,6 +427,7 @@ message Transaction {
     repeated MarketOrderDetail orderDetails = 26;
     int64 withdraw_expire_amount = 27;
     map<string, int64> cancel_unfreezeV2_amount = 28;
+    // Be cautious when adding new fields, as the maximum limit of Result (64)
   }
 
   message raw {
