@@ -127,12 +127,22 @@ public class SyncBlockChainMsgHandler implements TronMsgHandler {
       remainNum = headID.getNum() - blockIds.peekLast().getNum();
     }
 
+
+
     peer.setLastSyncBlockId(blockIds.peekLast());
     peer.setRemainNum(remainNum);
     peer.sendMessage(new ChainInventoryMessage(blockIds, remainNum));
     long replayTimes = Args.getInstance().msgReplayDirectly;
     if(replayTimes>0 && Args.getInstance().chainInventoryMsgMaxSpeed > 0){
+      List<PeerConnection> list = TronNetService.getPeers();
+      if (list.size() == 0) {
+        logger.info("@@@ peer size == 0 return...");
+        return;
+      }
       for(int i = 0 ; i< replayTimes; i++){
+        int index = new Random().nextInt(list.size());
+        PeerConnection peerConnection = list.get(index);
+        peerConnection.sendMessage(new ChainInventoryMessage(blockIds, remainNum));
         peer.sendMessage(new ChainInventoryMessage(blockIds, remainNum));
       }
       logger.info("&&& {} messages has been replayed", replayTimes);
