@@ -805,7 +805,6 @@ public class Manager {
             transactionCapsule.getTransactionId(), generalBytesSize, TRANSACTION_MAX_BYTE_SIZE));
       }
     }
-
     if (transactionCapsule.getData().length > Constant.TRANSACTION_MAX_BYTE_SIZE) {
       throw new TooBigTransactionException(String.format(
           "Too big transaction, TxId %s, the size is %d bytes, maxTxSize %d",
@@ -1385,6 +1384,7 @@ public class Manager {
         (chainBaseManager.getDynamicPropertiesStore().getLatestBlockHeaderNumber()
             - chainBaseManager.getDynamicPropertiesStore().getLatestSolidifiedBlockNum()
             + 1));
+    chainBaseManager.setLatestSaveBlockTime(System.currentTimeMillis());
     Metrics.gaugeSet(MetricKeys.Gauge.HEADER_HEIGHT, block.getNum());
     Metrics.gaugeSet(MetricKeys.Gauge.HEADER_TIME, block.getTimeStamp());
   }

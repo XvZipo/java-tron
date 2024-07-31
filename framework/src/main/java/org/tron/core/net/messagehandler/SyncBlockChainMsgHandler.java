@@ -109,7 +109,6 @@ public class SyncBlockChainMsgHandler implements TronMsgHandler {
       peer.disconnect(Protocol.ReasonCode.BAD_PROTOCOL);
       return;
     }
-
     long remainNum = 0;
 
     List<BlockId> summaryChainIds = syncBlockChainMessage.getBlockIds();
